@@ -115,14 +115,17 @@ export const parseResumeText = async (resumeText: string, careerGoal: string): P
 
 
 export const generateLearningPath = async (profile: UserProfile) => {
-    const prompt = `Based on the following user profile, create a personalized, step-by-step learning path to help them achieve their career goal of "${profile.careerGoal}". Focus on turning their weaknesses into strengths and enhancing their existing skills. Provide a mix of articles, videos, and official documentation as resources.
+    const prompt = `Based on the following user profile, create a personalized, step-by-step learning path to help them achieve their career goal of "${profile.careerGoal}".
+    
+    The path should be designed to upscale their capabilities. It must build upon their existing strengths and skills, while also introducing more advanced topics to help them level up. Focus on turning their weaknesses into strengths. Provide a mix of articles, videos, and official documentation as resources.
 
     **User Profile:**
+    - **Career Goal:** ${profile.careerGoal}
     - **Skills:** ${profile.skills.join(', ')}
     - **Strengths:** ${profile.strengths.join(', ')}
     - **Weaknesses to address:** ${profile.weaknesses.join(', ')}
     
-    Generate a concise list of learning modules.`;
+    Generate a concise list of learning modules with clear priorities.`;
     
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-pro',

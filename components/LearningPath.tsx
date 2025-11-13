@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { generateLearningPath } from '../services/geminiService';
 import type { UserProfile, LearningModule } from '../types';
@@ -5,6 +6,7 @@ import { SpinnerIcon } from './icons/SpinnerIcon';
 import { ThumbUpIcon } from './icons/ThumbUpIcon';
 import { ThumbDownIcon } from './icons/ThumbDownIcon';
 import { CheckIcon } from './icons/CheckIcon';
+import { RefreshIcon } from './icons/RefreshIcon';
 
 interface LearningPathProps {
   userProfile: UserProfile;
@@ -118,7 +120,7 @@ export const LearningPath: React.FC<LearningPathProps> = ({ userProfile }) => {
     );
   };
 
-  if (isLoading) {
+  if (isLoading && learningPath.length === 0) { // Only show full-screen loader on initial load
     return (
       <div className="flex flex-col items-center justify-center h-64 text-center">
         <SpinnerIcon />
@@ -134,16 +136,25 @@ export const LearningPath: React.FC<LearningPathProps> = ({ userProfile }) => {
 
   return (
     <div className="animate-fade-in space-y-8">
-      <div className="text-center">
+      <div className="text-center relative">
         <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300 mb-2">
           Your AI-Curated Learning Path
         </h2>
         <p className="text-slate-400 max-w-2xl mx-auto">
           Follow these modules to build the skills you need for your goal as a <span className="font-bold text-cyan-400">{userProfile.careerGoal}</span>.
         </p>
+         <button
+          onClick={fetchLearningPath}
+          disabled={isLoading}
+          title="Regenerate Learning Path"
+          className="absolute top-0 -right-2 md:right-0 p-2 text-slate-400 rounded-full bg-slate-700/50 hover:bg-blue-600/50 hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          aria-label="Regenerate Learning Path"
+        >
+          {isLoading ? <SpinnerIcon /> : <RefreshIcon className="w-5 h-5" />}
+        </button>
       </div>
       
-      <div className="space-y-6">
+      <div className={`space-y-6 transition-opacity duration-300 ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
         {learningPath.map((module, index) => (
           <div 
             key={index} 
