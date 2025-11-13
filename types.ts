@@ -47,4 +47,4 @@ export interface JobFilters {
   experience: 'any' | 'Fresher' | '1-3 years' | '3+ years';
 }
 
-export type View = 'profile' | 'learning' | 'jobs';
+export type View = 'profile' | 'learning' | 'jobs' | 'editing';

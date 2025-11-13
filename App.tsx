@@ -8,17 +8,27 @@ import * as authService from './services/authService';
 import type { UserProfile, View } from './types';
 import { UserIcon } from './components/icons/UserIcon';
 import { CodeIcon } from './components/icons/CodeIcon';
+import { EditIcon } from './components/icons/EditIcon';
 
-const UserProfileCard: React.FC<{ profile: UserProfile }> = ({ profile }) => (
+const UserProfileCard: React.FC<{ profile: UserProfile; onEdit: () => void; }> = ({ profile, onEdit }) => (
   <div className="bg-slate-800/50 rounded-xl p-6 shadow-2xl backdrop-blur-lg border border-slate-700 lg:sticky lg:top-24 animate-fade-in">
-    <div className="flex items-center gap-4 mb-4">
-      <div className="w-16 h-16 bg-gradient-to-tr from-blue-500 to-cyan-400 rounded-full flex items-center justify-center">
-        <UserIcon className="w-8 h-8 text-white" />
-      </div>
-      <div>
-        <h2 className="text-2xl font-bold text-white">{profile.name}</h2>
-        <p className="text-blue-300 font-medium">{profile.careerGoal}</p>
-      </div>
+    <div className="flex items-start justify-between gap-4 mb-4">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 bg-gradient-to-tr from-blue-500 to-cyan-400 rounded-full flex items-center justify-center">
+            <UserIcon className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white">{profile.name}</h2>
+            <p className="text-blue-300 font-medium">{profile.careerGoal}</p>
+          </div>
+        </div>
+        <button 
+            onClick={onEdit}
+            className="flex-shrink-0 p-2 text-slate-400 rounded-full bg-slate-700/50 hover:bg-blue-600/50 hover:text-white transition-colors"
+            title="Edit Profile"
+        >
+            <EditIcon className="w-5 h-5" />
+        </button>
     </div>
     <p className="text-slate-400 mb-4 text-sm">{profile.summary}</p>
     <div>
@@ -93,43 +103,57 @@ export default function App() {
     setIsLoading(false);
     setView('profile');
   }, []);
+  
+  const handleEditProfile = useCallback(() => {
+    setView('editing');
+  }, []);
+
+  const handleCancelEdit = useCallback(() => {
+    setView('learning');
+  }, []);
 
   const renderContent = () => {
     if (isLoading) {
-        return <div className="text-center p-12">Loading...</div>;
+        return <div className="flex items-center justify-center h-screen"><p className="text-lg">Loading session...</p></div>;
     }
 
     if (!currentUser) {
       return <Auth onLogin={handleLogin} onSignup={handleSignup} login={authService.login} signup={authService.signup} />;
     }
 
-    if (!userProfile) {
+    if (view === 'profile' || view === 'editing') {
       return (
         <main className="container mx-auto px-4 py-8 md:py-12">
             <ProfileInput
-            onProfileGenerated={handleProfileGenerated}
-            setIsLoading={setIsLoading}
-            setError={setError}
-            isLoading={isLoading}
+                onProfileGenerated={handleProfileGenerated}
+                setIsLoading={setIsLoading}
+                setError={setError}
+                isLoading={isLoading}
+                initialProfile={userProfile}
+                onCancel={view === 'editing' ? handleCancelEdit : undefined}
             />
         </main>
       );
     }
     
-    // Dashboard Layout
-    return (
-      <main className="container mx-auto px-4 py-8 md:py-12">
-        <div className="flex flex-col lg:flex-row gap-8">
-            <aside className="lg:w-1/3">
-            <UserProfileCard profile={userProfile} />
-            </aside>
-            <div className="lg:w-2/3">
-            {view === 'learning' && <LearningPath userProfile={userProfile} />}
-            {view === 'jobs' && <JobFinder userProfile={userProfile} />}
+    if (userProfile && (view === 'learning' || view === 'jobs')) {
+        return (
+          <main className="container mx-auto px-4 py-8 md:py-12">
+            <div className="flex flex-col lg:flex-row gap-8">
+                <aside className="lg:w-1/3">
+                <UserProfileCard profile={userProfile} onEdit={handleEditProfile} />
+                </aside>
+                <div className="lg:w-2/3">
+                {view === 'learning' && <LearningPath userProfile={userProfile} />}
+                {view === 'jobs' && <JobFinder userProfile={userProfile} />}
+                </div>
             </div>
-        </div>
-      </main>
-    );
+          </main>
+        );
+    }
+    
+    // Fallback if state is inconsistent, should not be reached in normal flow
+    return <div className="text-center p-12">An unexpected error occurred. Please try refreshing the page.</div>;
   };
   
   const currentViewForHeader = userProfile ? view : 'profile';
